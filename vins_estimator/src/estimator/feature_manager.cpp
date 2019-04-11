@@ -49,7 +49,7 @@ int FeatureManager::getFeatureCount()
 }
 
 
-bool FeatureManager::addFeatureCheckParallax(int frame_count, const map<int, vector<pair<int, Eigen::Matrix<double, 7, 1>>>> &image, double td)
+bool FeatureManager::addFeatureCheckParallax(int frame_count, const map<int, vector<pair<int, Eigen::Matrix<double, 8, 1>>>> &image, double td)
 {
     ROS_DEBUG("input feature: %d", (int)image.size());
     ROS_DEBUG("num of feature: %d", getFeatureCount());
@@ -63,6 +63,7 @@ bool FeatureManager::addFeatureCheckParallax(int frame_count, const map<int, vec
     {
         FeaturePerFrame f_per_fra(id_pts.second[0].second, td);
         assert(id_pts.second[0].first == 0);
+        // lee: Won't happen in RGBD
         if(id_pts.second.size() == 2)
         {
             f_per_fra.rightObservation(id_pts.second[1].second);
@@ -85,7 +86,7 @@ bool FeatureManager::addFeatureCheckParallax(int frame_count, const map<int, vec
         {
             it->feature_per_frame.push_back(f_per_fra);
             last_track_num++;
-            if( it-> feature_per_frame.size() >= 4)
+            if(it -> feature_per_frame.size() >= 4)
                 long_track_num++;
         }
     }
@@ -185,6 +186,7 @@ VectorXd FeatureManager::getDepthVector()
         it_per_id.used_num = it_per_id.feature_per_frame.size();
         if (it_per_id.used_num < 4)
             continue;
+        //lee: inverse depth optimization
 #if 1
         dep_vec(++feature_index) = 1. / it_per_id.estimated_depth;
 #else
@@ -232,8 +234,9 @@ bool FeatureManager::solvePoseByPnP(Eigen::Matrix3d &R, Eigen::Vector3d &P,
     cv::eigen2cv(R_initial, tmp_r);
     cv::Rodrigues(tmp_r, rvec);
     cv::eigen2cv(P_initial, t);
-    cv::Mat K = (cv::Mat_<double>(3, 3) << 1, 0, 0, 0, 1, 0, 0, 0, 1);  
+    cv::Mat K = (cv::Mat_<double>(3, 3) << 1, 0, 0, 0, 1, 0, 0, 0, 1);
     bool pnp_succ;
+    //TODO(lee): decide which one to use
     pnp_succ = cv::solvePnP(pts3D, pts2D, K, D, rvec, t, 1);
     //pnp_succ = solvePnPRansac(pts3D, pts2D, K, D, rvec, t, true, 100, 8.0 / focalLength, 0.99, inliers);
 
@@ -296,6 +299,17 @@ void FeatureManager::initFramePoseByPnP(int frameCnt, Vector3d Ps[], Matrix3d Rs
             //cout << "frameCnt: " << frameCnt <<  " pnp Q " << Q.w() << " " << Q.vec().transpose() << endl;
             //cout << "frameCnt: " << frameCnt << " pnp P " << Ps[frameCnt].transpose() << endl;
         }
+    }
+}
+
+void FeatureManager::triangulateRGBD(int frameCnt, Vector3d Ps[], Matrix3d Rs[], Vector3d tic[], Matrix3d ric[])
+{
+    for (auto &it_per_id : feature)
+    {
+        if (it_per_id.estimated_depth > 0)
+            continue;
+        // lee: Set estimated_depth directlly
+        it_per_id.estimated_depth = it_per_id.feature_per_frame[0].depth;
     }
 }
 

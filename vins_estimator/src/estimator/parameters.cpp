@@ -34,10 +34,11 @@ int ROW, COL;
 double TD;
 int NUM_OF_CAM;
 int STEREO;
+int RGBD;
 int USE_IMU;
 int MULTIPLE_THREAD;
 map<int, Eigen::Vector3d> pts_gt;
-std::string IMAGE0_TOPIC, IMAGE1_TOPIC;
+std::string IMAGE_TOPIC, DEPTH_TOPIC;
 std::string FISHEYE_MASK;
 std::vector<std::string> CAM_NAMES;
 int MAX_CNT;
@@ -79,8 +80,8 @@ void readParameters(std::string config_file)
         std::cerr << "ERROR: Wrong path to settings" << std::endl;
     }
 
-    fsSettings["image0_topic"] >> IMAGE0_TOPIC;
-    fsSettings["image1_topic"] >> IMAGE1_TOPIC;
+    fsSettings["image_topic"] >> IMAGE_TOPIC;
+    fsSettings["depth_topic"] >> DEPTH_TOPIC;
     MAX_CNT = fsSettings["max_cnt"];
     MIN_DIST = fsSettings["min_dist"];
     F_THRESHOLD = fsSettings["F_threshold"];
@@ -137,8 +138,9 @@ void readParameters(std::string config_file)
         cv::cv2eigen(cv_T, T);
         RIC.push_back(T.block<3, 3>(0, 0));
         TIC.push_back(T.block<3, 1>(0, 3));
-    } 
-    
+    }
+    RGBD = fsSettings["rgbd"];
+
     NUM_OF_CAM = fsSettings["num_of_cam"];
     printf("camera number %d\n", NUM_OF_CAM);
 
@@ -172,6 +174,10 @@ void readParameters(std::string config_file)
         cv::cv2eigen(cv_T, T);
         RIC.push_back(T.block<3, 3>(0, 0));
         TIC.push_back(T.block<3, 1>(0, 3));
+    }
+    else
+    {
+        STEREO = 0;
     }
 
     INIT_DEPTH = 5.0;
