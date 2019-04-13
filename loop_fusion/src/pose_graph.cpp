@@ -656,6 +656,9 @@ void PoseGraph::optimize6DoF()
             int i = 0;
             for (it = keyframelist.begin(); it != keyframelist.end(); it++)
             {
+                // lee: Why start from first_looped_index?
+                // ans: we know nothing about frames before first_looped_index, but R T after it are optimal.
+                //      As we get some connections, set transformation constant, and optimize all the others.
                 if ((*it)->index < first_looped_index)
                     continue;
                 (*it)->local_index = i;
@@ -741,6 +744,7 @@ void PoseGraph::optimize6DoF()
                 Quaterniond tmp_q(q_array[i][0], q_array[i][1], q_array[i][2], q_array[i][3]);
                 Vector3d tmp_t = Vector3d(t_array[i][0], t_array[i][1], t_array[i][2]);
                 Matrix3d tmp_r = tmp_q.toRotationMatrix();
+                // lee: poses after optimization get updated here
                 (*it)-> updatePose(tmp_t, tmp_r);
 
                 if ((*it)->index == cur_index)
@@ -779,6 +783,7 @@ void PoseGraph::optimize6DoF()
     return;
 }
 
+// lee: this is only for updating visualization path, poses are updated.
 void PoseGraph::updatePath()
 {
     m_keyframelist.lock();
