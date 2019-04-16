@@ -47,6 +47,7 @@ KeyFrame::KeyFrame(double _time_stamp, int _index, Vector3d &_vio_T_w_i, Matrix3
 	sequence = _sequence;
 	computeWindowBRIEFPoint();
 	computeBRIEFPoint();
+	// lee: if not debug, image will be released (after computing brief desc)
 	if(!DEBUG_IMAGE)
 		image.release();
 }

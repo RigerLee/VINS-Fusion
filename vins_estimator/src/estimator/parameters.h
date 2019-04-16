@@ -9,14 +9,19 @@
 
 #pragma once
 
-#include <ros/ros.h>
+#include "camodocal/camera_models/CameraFactory.h"
+#include "camodocal/camera_models/CataCamera.h"
+#include "camodocal/camera_models/PinholeCamera.h"
+
 #include <vector>
-#include <eigen3/Eigen/Dense>
-#include "../utility/utility.h"
-#include <opencv2/opencv.hpp>
-#include <opencv2/core/eigen.hpp>
 #include <fstream>
 #include <map>
+#include <eigen3/Eigen/Dense>
+#include <opencv2/opencv.hpp>
+#include <opencv2/core/eigen.hpp>
+#include "../utility/utility.h"
+
+
 
 using namespace std;
 
@@ -64,6 +69,8 @@ extern int MIN_DIST;
 extern double F_THRESHOLD;
 extern int SHOW_TRACK;
 extern int FLOW_BACK;
+
+extern camodocal::CameraPtr m_camera;
 
 void readParameters(std::string config_file);
 
